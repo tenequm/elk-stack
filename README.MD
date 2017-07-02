@@ -1,7 +1,7 @@
 ELK stack provisioning play.
 ===
 
-This play establishes stack with 2 client computers (just to show it's work) and 1 ELK server, that aggregates and shows collected information.
+This play establishes stack with 2 client computers (just to show it's work) and 1 ELK server, that aggregates and shows collected information. Also it configures firewall, so onlu needed ports will be opened.
 
 Clients
 ===
