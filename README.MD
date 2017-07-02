@@ -5,7 +5,7 @@ This play establishes stack with 2 client computers (just to show it's work) and
 
 Clients
 ===
-Clients are provisioned on DigitalOcean droplets. `client-setup.yml` playbook doesn't have much variables, the only important one that should be declared is `api_token` more about this variable look in my another repository [ansible-digo](https://github.com/tenequm/ansible-digo). Also you should an RSA key pair into `ssh_keys` directory, so you will have more easier way to connect to your clients, as you will have keys to access it.
+Clients are provisioned on DigitalOcean droplets. `client-setup.yml` playbook doesn't have much variables, the only important one that should be declared is `api_token` more about this variable look in my another repository [ansible-digo](https://github.com/tenequm/ansible-digo). Also you should an RSA key pair into `ssh_keys` directory that should be placed in the root of this play, so you will have more easier way to connect to your clients, as you will have keys to access it.
 They also will have installed and configured `filebeat` apps and will send statistics to ELK server from scratch.
 
 ELK Server
