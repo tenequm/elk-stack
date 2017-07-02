@@ -8,12 +8,17 @@
     - name: Installing Python 2.
       raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
       changed_when: false
+    - name: Installing ntp.
+      apt: name=ntp
+    - name: Setting timezone.
+      timezone: name="Etc/UTC"
+    - name: Ensure NTP is running and enabled.
+      service: name=ntp enabled=yes state=started
 
 - name: Provisioning ELK server.
   hosts: elk
   roles:
-    - elk
-  tasks:
+    - tenequm.elk
 
 - name: Provisioning clients.
   hosts: clients
@@ -32,7 +37,6 @@
       apt:
         name: "{{ item }}"
         update_cache: yes
-        cache_valid_time: 3600
       with_items:
         - apt-transport-https
         - filebeat
