@@ -1,0 +1,55 @@
+---
+- include: client-setup.yml
+
+- name: Fixing problem with Python interpreter.
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Installing Python 2.
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+      changed_when: false
+
+- name: Provisioning ELK server.
+  hosts: elk
+  roles:
+    - elk
+  tasks:
+
+- name: Provisioning clients.
+  hosts: clients
+  gather_facts: false
+
+  tasks:
+    - name: Adding repository for Beats.
+      apt_repository: repo="deb https://packages.elastic.co/beats/apt stable main"
+
+    - name: Adding key for ELK repository.
+      apt_key:
+        keyserver: pgp.mit.edu
+        id: D88E42B4
+
+    - name: Installing Filebeat packages.
+      apt:
+        name: "{{ item }}"
+        update_cache: yes
+        cache_valid_time: 3600
+      with_items:
+        - apt-transport-https
+        - filebeat
+
+    - name: Adding Filebeat config file.
+      template:
+        src: templates/filebeat.yml.j2
+        dest: /etc/filebeat/filebeat.yml
+      register: fb_config
+
+    - name: Enabling Filebeat.
+      service:
+        name: filebeat
+        enabled: yes
+        state: started
+
+    - name: Restarting Filebeat when changing conf.
+      service: name=filebeat state=restarted
+      when: fb_config.changed
+

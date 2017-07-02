@@ -1,0 +1,61 @@
+# Play for configuring ELK clients.
+# vi: set ft=ansible :
+# @author tenequm (Mykhaylo Kolesnik) (2017).
+---
+- name: Creating clients.
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_prompt:
+    - name: "clients_status"
+      prompt: "Should clients be 'present' or 'absent'?"
+      default: "present"
+      private: no
+
+  tasks:
+    - name: Adding SSH key for authentication.
+      digital_ocean:
+        command: ssh
+        api_token: "{{ api_token | default('') }}"
+        state: present
+        name: "client-key"
+        ssh_pub_key: "{{ lookup('file', 'ssh_keys/id_rsa.pub') }}"
+      register: ssh_key
+
+    - name: Creating/deleting droplet.
+      digital_ocean:
+        api_token: "{{ api_token | default('') }}"
+        state: "{{ clients_status }}"
+        command: droplet
+        name: "{{ item }}"
+        private_networking: yes
+        image_id: "{{ droplet_image|d('ubuntu-16-04-x64') }}"
+        size_id: "{{ droplet_size|d('512mb') }}"
+        region_id: "{{ droplet_region|d('ams2') }}"
+        ssh_key_ids: "{{ ssh_key.ssh_key.id }}"
+        unique_name: yes
+      register: droplets
+      with_items:
+        - "{{ clients }}"
+
+    - name: Adding hosts to our inventory.
+      add_host:
+        name: "{{ item.droplet.ip_address }}"
+        groups: "clients"
+        ansible_user: "root"
+        ansible_ssh_private_key_file: "{{ private_ssh_key_root }}"
+      changed_when: false
+      when: droplets.results is defined and clients_status != "absent"
+      with_items:
+        - "{{ droplets.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - wait_for:
+        port: 22
+        host: "{{ item.droplet.ip_address }}"
+      when: droplets.results is defined and clients_status != "absent" and droplets|changed
+      with_items:
+        - "{{ droplets.results }}"
+      loop_control:
+        label: "{{ item.item }}"

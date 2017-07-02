@@ -1,0 +1,4 @@
+---
+- tenequm.firewall
+- tenequm.elk
+- tenequm.nginx

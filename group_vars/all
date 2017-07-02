@@ -1,0 +1,6 @@
+---
+private_ssh_key_root: ssh_keys/id_rsa
+elk_server_domain: "check-site.tk"
+clients:
+  - client1
+  - client2
